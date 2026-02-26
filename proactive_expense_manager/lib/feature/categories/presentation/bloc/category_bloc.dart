@@ -61,7 +61,9 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
   ) async {
     final current = state is CategoryLoaded
         ? (state as CategoryLoaded).categories
-        : <CategoryEntity>[];
+        : state is CategoryDeleteFailed
+            ? (state as CategoryDeleteFailed).categories
+            : <CategoryEntity>[];
     try {
       await _deleteCategory(event.id);
       final updated = current.where((c) => c.id != event.id).toList();
@@ -69,6 +71,10 @@ class CategoryBloc extends Bloc<CategoryEvent, CategoryState> {
     } catch (e) {
       appLogger.error('Delete category error', error: e);
       final message = e.toString().replaceFirst('Exception: ', '');
+      // If state is already CategoryDeleteFailed, BLoC will skip emission of
+      // an equal state — the listener won't fire and the snackbar won't show.
+      // Emitting CategoryLoaded first guarantees a state change on every retry.
+      if (state is CategoryDeleteFailed) emit(CategoryLoaded(current));
       emit(CategoryDeleteFailed(current, message));
     }
   }

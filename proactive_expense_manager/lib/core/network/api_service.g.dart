@@ -228,18 +228,16 @@ class _ApiService implements ApiService {
   }
 
   @override
-  Future<DeleteIdsResponseModel> deleteTransaction(String id) async {
+  Future<DeleteIdsResponseModel> deleteTransactions(
+    DeleteTransactionsRequestModel request,
+  ) async {
     final _extra = <String, dynamic>{};
     final queryParameters = <String, dynamic>{};
     final _headers = <String, dynamic>{};
-    final _data = {'transaction_id': id};
+    final _data = <String, dynamic>{};
+    _data.addAll(request.toJson());
     final _options = _setStreamType<DeleteIdsResponseModel>(
-      Options(
-            method: 'DELETE',
-            headers: _headers,
-            extra: _extra,
-            contentType: 'application/x-www-form-urlencoded',
-          )
+      Options(method: 'DELETE', headers: _headers, extra: _extra)
           .compose(
             _dio.options,
             '/transactions/delete/',

@@ -44,9 +44,12 @@ class SummaryCard extends StatelessWidget {
                 color: AppColors.textPrimary,
                 size: 20.sp,
               ),
-              Text(
-                amount,
-                style: tt.headlineLarge?.copyWith(color: AppColors.textPrimary),
+              Expanded(
+                child: Text(
+                  amount,
+                  style: tt.headlineLarge?.copyWith(color: AppColors.textPrimary),
+                  overflow: TextOverflow.ellipsis,
+                ),
               ),
             ],
           ),

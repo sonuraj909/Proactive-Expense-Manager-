@@ -103,6 +103,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   Future<void> _onLogout(LogoutEvent event, Emitter<AuthState> emit) async {
+    // Push pending deletions to the server before wiping the local DB.
+    // This prevents soft-deleted records from reappearing after a re-login
+    // (restoreFromCloud would otherwise re-fetch them from the server).
+    try {
+      await _categoryRepo.syncDeletedCategories();
+      await _transactionRepo.syncDeletedTransactions();
+    } catch (e) {
+      appLogger.warning('Pre-logout sync failed (best-effort)', error: e);
+    }
     await _db.clearAll();
     await _storage.clearAuth();
     emit(const LoggedOutState());

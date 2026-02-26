@@ -49,8 +49,7 @@ abstract class ApiService {
   );
 
   @DELETE('/transactions/delete/')
-  @FormUrlEncoded()
-  Future<DeleteIdsResponseModel> deleteTransaction(
-    @Field('transaction_id') String id,
+  Future<DeleteIdsResponseModel> deleteTransactions(
+    @Body() DeleteTransactionsRequestModel request,
   );
 }

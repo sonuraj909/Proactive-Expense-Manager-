@@ -62,26 +62,18 @@ class TransactionRemoteDataSourceImpl implements TransactionRemoteDataSource {
 
   @override
   Future<List<String>> deleteTransactions(List<String> ids) async {
-    final deletedIds = <String>[];
-    for (final id in ids) {
-      try {
-        await _api.deleteTransaction(id);
-        deletedIds.add(id);
-      } on DioException catch (e) {
-        // 404 = not on server (uploaded before we sent id, or already deleted)
-        // Treat as deleted so the local record is cleaned up
-        if (e.response?.statusCode == 404) {
-          deletedIds.add(id);
-          continue;
-        }
-        final data = e.response?.data;
-        throw ServerException(
-          (data is Map ? data['message'] as String? : null) ??
-              e.message ??
-              'Delete sync failed',
-        );
-      }
+    try {
+      await _api.deleteTransactions(DeleteTransactionsRequestModel(ids: ids));
+      return ids;
+    } on DioException catch (e) {
+      // 404 = none of the IDs exist on the server — treat all as deleted
+      if (e.response?.statusCode == 404) return ids;
+      final data = e.response?.data;
+      throw ServerException(
+        (data is Map ? data['message'] as String? : null) ??
+            e.message ??
+            'Delete sync failed',
+      );
     }
-    return deletedIds;
   }
 }
