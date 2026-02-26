@@ -4,6 +4,7 @@ import 'package:proactive_expense_manager/core/network/api_service.dart';
 import 'package:proactive_expense_manager/feature/categories/data/models/category_model.dart';
 
 abstract class CategoryRemoteDataSource {
+  Future<List<RemoteCategoryModel>> fetchCategories();
   Future<List<String>> uploadCategories(List<CategoryModel> categories);
   Future<List<String>> deleteCategories(List<String> ids);
 }
@@ -11,6 +12,22 @@ abstract class CategoryRemoteDataSource {
 class CategoryRemoteDataSourceImpl implements CategoryRemoteDataSource {
   final ApiService _api;
   const CategoryRemoteDataSourceImpl(this._api);
+
+  @override
+  Future<List<RemoteCategoryModel>> fetchCategories() async {
+    try {
+      final response = await _api.getCategories();
+      // Filter out entries where category_id is null (not persisted on server)
+      return response.categories.where((c) => c.id != null).toList();
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        (data is Map ? data['message'] as String? : null) ??
+            e.message ??
+            'Failed to fetch categories',
+      );
+    }
+  }
 
   @override
   Future<List<String>> uploadCategories(List<CategoryModel> categories) async {

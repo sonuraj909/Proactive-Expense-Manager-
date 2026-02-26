@@ -6,4 +6,5 @@ abstract class CategoryRepository {
   Future<void> softDeleteCategory(String id);
   Future<List<CategoryEntity>> syncDeletedCategories();
   Future<List<CategoryEntity>> syncNewCategories();
+  Future<void> restoreFromCloud();
 }

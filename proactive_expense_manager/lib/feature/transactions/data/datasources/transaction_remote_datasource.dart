@@ -4,6 +4,7 @@ import 'package:proactive_expense_manager/core/network/api_service.dart';
 import 'package:proactive_expense_manager/feature/transactions/data/models/transaction_model.dart';
 
 abstract class TransactionRemoteDataSource {
+  Future<List<RemoteTransactionModel>> fetchTransactions();
   Future<List<String>> uploadTransactions(List<TransactionModel> transactions);
   Future<List<String>> deleteTransactions(List<String> ids);
 }
@@ -11,6 +12,21 @@ abstract class TransactionRemoteDataSource {
 class TransactionRemoteDataSourceImpl implements TransactionRemoteDataSource {
   final ApiService _api;
   const TransactionRemoteDataSourceImpl(this._api);
+
+  @override
+  Future<List<RemoteTransactionModel>> fetchTransactions() async {
+    try {
+      final response = await _api.getTransactions();
+      return response.transactions;
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      throw ServerException(
+        (data is Map ? data['message'] as String? : null) ??
+            e.message ??
+            'Failed to fetch transactions',
+      );
+    }
+  }
 
   @override
   Future<List<String>> uploadTransactions(

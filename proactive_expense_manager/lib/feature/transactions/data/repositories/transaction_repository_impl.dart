@@ -92,4 +92,33 @@ class TransactionRepositoryImpl implements TransactionRepository {
     await _local.markSynced(syncedIds);
     return pending.map((m) => m.toEntity()).toList();
   }
+
+  @override
+  Future<void> restoreFromCloud() async {
+    final remote = await _remote.fetchTransactions();
+    if (remote.isEmpty) return;
+    final models = remote.map((r) {
+      // Normalize timestamp from ISO 8601 (e.g. "2023-10-27T10:00:00Z")
+      // to the local format ("2023-10-27 10:00:00") used throughout the app.
+      final ts = DateTime.parse(r.timestamp)
+          .toLocal()
+          .toIso8601String()
+          .replaceFirst('T', ' ')
+          .split('.')
+          .first;
+      return TransactionModel(
+        id: r.id,
+        amount: r.amount,
+        note: r.note,
+        type: r.type.toLowerCase(),
+        // Fall back to the uncategorized placeholder when the server returns
+        // no category (same fixed UUID created in CategoryLocalDataSourceImpl).
+        categoryId: r.category ?? '00000000-0000-0000-0000-000000000000',
+        isSynced: 1,
+        isDeleted: 0,
+        timestamp: ts,
+      );
+    }).toList();
+    await _local.insertBatch(models);
+  }
 }

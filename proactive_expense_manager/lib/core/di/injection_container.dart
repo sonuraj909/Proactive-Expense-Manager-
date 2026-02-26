@@ -76,6 +76,8 @@ Future<void> initDependencies() async {
       createAccount: sl<CreateAccountUseCase>(),
       storage: sl<LocalStorageService>(),
       db: sl<DatabaseHelper>(),
+      categoryRepository: sl<CategoryRepository>(),
+      transactionRepository: sl<TransactionRepository>(),
     ),
   );
 

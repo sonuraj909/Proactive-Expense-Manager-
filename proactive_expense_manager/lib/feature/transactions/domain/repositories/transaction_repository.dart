@@ -13,4 +13,5 @@ abstract class TransactionRepository {
   Future<double> getMonthlyDebitTotal();
   Future<List<TransactionEntity>> syncDeletedTransactions();
   Future<List<TransactionEntity>> syncNewTransactions();
+  Future<void> restoreFromCloud();
 }

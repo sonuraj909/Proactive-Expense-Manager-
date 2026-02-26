@@ -39,7 +39,7 @@ RemoteTransactionModel _$RemoteTransactionModelFromJson(
   amount: (json['amount'] as num).toDouble(),
   note: json['note'] as String,
   type: json['type'] as String,
-  category: json['category'] as String,
+  category: json['category'] as String?,
   timestamp: json['timestamp'] as String,
 );
 

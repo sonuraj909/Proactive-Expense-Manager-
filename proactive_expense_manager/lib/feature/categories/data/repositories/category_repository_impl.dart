@@ -67,6 +67,19 @@ class CategoryRepositoryImpl implements CategoryRepository {
     await _local.markSynced(syncedIds);
     return pending.map((m) => m.toEntity()).toList();
   }
+
+  @override
+  Future<void> restoreFromCloud() async {
+    // Always ensure the placeholder exists first so transactions with no
+    // category (server returns category: null) have a valid FK target.
+    await _local.ensureUncategorizedPlaceholder();
+    final remote = await _remote.fetchCategories();
+    if (remote.isEmpty) return;
+    final models = remote
+        .map((r) => CategoryModel(id: r.id!, name: r.name, isSynced: 1))
+        .toList();
+    await _local.insertBatch(models);
+  }
 }
 
 extension on CategoryEntity {

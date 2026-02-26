@@ -94,7 +94,7 @@ class RemoteTransactionModel {
   final double amount;
   final String note;
   final String type;
-  final String category;
+  final String? category;
   final String timestamp;
 
   const RemoteTransactionModel({
@@ -102,7 +102,7 @@ class RemoteTransactionModel {
     required this.amount,
     required this.note,
     required this.type,
-    required this.category,
+    this.category,
     required this.timestamp,
   });
 

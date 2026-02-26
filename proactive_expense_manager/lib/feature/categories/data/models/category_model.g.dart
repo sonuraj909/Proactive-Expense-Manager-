@@ -22,12 +22,26 @@ Map<String, dynamic> _$CategoryModelToJson(CategoryModel instance) =>
       'is_deleted': instance.isDeleted,
     };
 
+RemoteCategoryModel _$RemoteCategoryModelFromJson(
+  Map<String, dynamic> json,
+) => RemoteCategoryModel(
+  id: json['category_id'] as String?,
+  name: json['name'] as String,
+);
+
+Map<String, dynamic> _$RemoteCategoryModelToJson(
+  RemoteCategoryModel instance,
+) => <String, dynamic>{
+  'category_id': instance.id,
+  'name': instance.name,
+};
+
 CategoriesResponseModel _$CategoriesResponseModelFromJson(
   Map<String, dynamic> json,
 ) => CategoriesResponseModel(
   status: json['status'] as String,
   categories: (json['categories'] as List<dynamic>)
-      .map((e) => CategoryModel.fromJson(e as Map<String, dynamic>))
+      .map((e) => RemoteCategoryModel.fromJson(e as Map<String, dynamic>))
       .toList(),
 );
 

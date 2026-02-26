@@ -6,22 +6,30 @@ import 'package:proactive_expense_manager/feature/auth/domain/usecases/create_ac
 import 'package:proactive_expense_manager/feature/auth/domain/usecases/send_otp_usecase.dart';
 import 'package:proactive_expense_manager/feature/auth/presentation/bloc/auth_event.dart';
 import 'package:proactive_expense_manager/feature/auth/presentation/bloc/auth_state.dart';
+import 'package:proactive_expense_manager/feature/categories/domain/repositories/category_repository.dart';
+import 'package:proactive_expense_manager/feature/transactions/domain/repositories/transaction_repository.dart';
 
 class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final SendOtpUseCase _sendOtp;
   final CreateAccountUseCase _createAccount;
   final LocalStorageService _storage;
   final DatabaseHelper _db;
+  final CategoryRepository _categoryRepo;
+  final TransactionRepository _transactionRepo;
 
   AuthBloc({
     required SendOtpUseCase sendOtp,
     required CreateAccountUseCase createAccount,
     required LocalStorageService storage,
     required DatabaseHelper db,
+    required CategoryRepository categoryRepository,
+    required TransactionRepository transactionRepository,
   })  : _sendOtp = sendOtp,
         _createAccount = createAccount,
         _storage = storage,
         _db = db,
+        _categoryRepo = categoryRepository,
+        _transactionRepo = transactionRepository,
         super(const AuthInitial()) {
     on<SendOtpEvent>(_onSendOtp);
     on<VerifyOtpEvent>(_onVerifyOtp);
@@ -64,6 +72,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
       final phone = _storage.getPhone() ?? '';
       await _db.reinitForUser(phone);
+      try {
+        await _categoryRepo.restoreFromCloud();
+        await _transactionRepo.restoreFromCloud();
+      } catch (e) {
+        appLogger.error('Restore from cloud failed', error: e);
+      }
       emit(const OtpVerifiedExistingUser());
     } else {
       final phone = _storage.getPhone() ?? '';

@@ -56,10 +56,26 @@ class CategoryModel {
 
 // ── API response wrappers ─────────────────────────────────────────────────────
 
+/// Matches the server's GET /categories/ shape, where the id is returned as
+/// `category_id` and may be null for entries not yet persisted on the server.
+@JsonSerializable()
+class RemoteCategoryModel {
+  @JsonKey(name: 'category_id')
+  final String? id;
+  final String name;
+
+  const RemoteCategoryModel({required this.id, required this.name});
+
+  factory RemoteCategoryModel.fromJson(Map<String, dynamic> json) =>
+      _$RemoteCategoryModelFromJson(json);
+
+  Map<String, dynamic> toJson() => _$RemoteCategoryModelToJson(this);
+}
+
 @JsonSerializable()
 class CategoriesResponseModel {
   final String status;
-  final List<CategoryModel> categories;
+  final List<RemoteCategoryModel> categories;
 
   const CategoriesResponseModel({
     required this.status,

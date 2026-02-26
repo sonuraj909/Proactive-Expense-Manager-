@@ -1,6 +1,7 @@
 import 'package:proactive_expense_manager/core/database/database_helper.dart';
 import 'package:proactive_expense_manager/core/error/exceptions.dart';
 import 'package:proactive_expense_manager/feature/transactions/data/models/transaction_model.dart';
+import 'package:sqflite/sqflite.dart';
 
 abstract class TransactionLocalDataSource {
   Future<List<TransactionModel>> getRecentTransactions({int limit = 10});
@@ -8,6 +9,7 @@ abstract class TransactionLocalDataSource {
   Future<List<TransactionModel>> getPendingSync();
   Future<List<TransactionModel>> getPendingDelete();
   Future<TransactionModel> insertTransaction(TransactionModel model);
+  Future<void> insertBatch(List<TransactionModel> models);
   Future<void> softDeleteTransaction(String id);
   Future<void> markSynced(List<String> ids);
   Future<void> hardDeleteTransactions(List<String> ids);
@@ -94,6 +96,28 @@ class TransactionLocalDataSourceImpl implements TransactionLocalDataSource {
       return TransactionModel.fromDbMap(rows.first);
     } catch (e) {
       throw CacheException('Failed to insert transaction: $e');
+    }
+  }
+
+  @override
+  Future<void> insertBatch(List<TransactionModel> models) async {
+    if (models.isEmpty) return;
+    final db = await _db.database;
+    // Disable FK enforcement temporarily: INSERT OR IGNORE does not suppress
+    // FK violations in SQLite — we still want to skip, not fail hard.
+    await db.execute('PRAGMA foreign_keys = OFF');
+    try {
+      final batch = db.batch();
+      for (final model in models) {
+        batch.insert(
+          DatabaseHelper.tableTransactions,
+          model.toDbMap(),
+          conflictAlgorithm: ConflictAlgorithm.ignore,
+        );
+      }
+      await batch.commit(noResult: true);
+    } finally {
+      await db.execute('PRAGMA foreign_keys = ON');
     }
   }
 
